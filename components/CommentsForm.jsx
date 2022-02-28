@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-
+import { submitComment } from '../services';
 const CommentsForm = ({ slug }) => {
   const [error, setError] = useState(false)
   const [localStorage, setLocalStorage] = useState(null);
@@ -9,11 +9,19 @@ const CommentsForm = ({ slug }) => {
   const emailEl = useRef();
   const storeDataEL = useRef();
 
+  useEffect(() => {
+    nameEL.current.value = window.localStorage.getItem('name');
+    emailEl.current.value = window.localStorage.getItem('email');
+
+  }, [])
+
+
   const handleCommentSubmission = () => {
     setError(false);
     const { value: comment } = commentsEl.current;
     const { value: name } = nameEL.current;
     const { value: email } = emailEl.current;
+    const { checked: storeData } = storeDataEL.current;
 
     if (!comment || !name || !email) {
       setError(true);
@@ -23,11 +31,29 @@ const CommentsForm = ({ slug }) => {
     const commentObj = {
       name, email, comment, slug
     };
+    if (storeData) {
+      window.localStorage.setItem('name', name);
+      window.localStorage.setItem('email', email);
+
+    }
+    else {
+      window.localStorage.removeItem('name', name);
+      window.localStorage.removeItem('email', email);
+    }
+
+    submitComment(commentObj)
+      .then((res) => {
+        setShowSuccessmessage(true);
+        setTimeout(() => {
+          setShowSuccessmessage(false)
+        }, 3000);
+      })
+
   }
 
   return (
     <div className='bg-white shadow-lg rounded-lg p-8 pc-12 mb-8'>
-      <h3 className='tect-xl mb-8 font-semibolds border-b pb-4'>CommentsForm </h3>
+      <h3 className='tect-xl mb-8 font-semibolds border-b pb-4'>Leave a Reply </h3>
       <div className='grid drid-cols-1 gap-4 mb-4'>
         <textarea
           ref={commentsEl}
@@ -55,9 +81,9 @@ const CommentsForm = ({ slug }) => {
         <div>
           <input
             ref={storeDataEL} type="checkbox" id="storedate" name="storeData" value="true" />
-          <label className='text-gray-500 cursor-pointer" htmlFor="storeData"'> Save my e-mail and name for the next time I comment
+          <label className='text-gray-500 cursor-pointer ml-2" htmlFor="storeData"'> Save my e-mail and name for the next time I comment
           </label>
-          
+
         </div>
       </div>
 
